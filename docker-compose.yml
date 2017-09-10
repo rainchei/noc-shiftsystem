@@ -1,0 +1,39 @@
+django:
+  build: ./django/
+  container_name: shiftsys-django
+  expose:
+    - 8001
+  volumes_from:
+    - django_data
+  command: uwsgi --socket :8001 --module noc.wsgi
+
+django_data:
+  image: python:latest
+  volumes:
+    - ./django:/django
+  command: "true"
+
+nginx:
+  build: ./nginx/
+  container_name: shiftsys-nginx
+  links:
+    - django:django
+  ports:
+    - "80:80"
+
+#Use sqlite3 for development
+#db:
+#  image: mariadb:latest
+#  volumes_from:
+#    - db_data
+#  environment:
+#    MYSQL_ROOT_PASSWORD: secret
+#    MYSQL_DATABASE: djangodb
+#    MYSQL_USER: rainman
+#    MYSQL_PASSWORD: secret
+#
+#dbdata:
+#  image: mariadb:latest
+#  volumes:
+#    - /var/lib/mysql
+#  command: "true"

@@ -1,0 +1,90 @@
+{% load static %}
+
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <!--css: place the CSS file in the header.-->
+        <link rel="stylesheet" type="text/css" href="{% static 'bower_components/bootstrap/dist/css/bootstrap.css' %}" />
+        <script src="{% static 'bower_components/jquery/dist/jquery.min.js' %}"></script>
+        <script src="{% static 'bower_components/bootstrap/dist/js/bootstrap.min.js' %}"></script>
+
+        <title>Welcome To NOC Shiftsystem</title>
+        {% block style %}
+        {% endblock %}
+    </head>
+
+    <body>
+        <nav class="navbar navbar-inverse">
+            <div class="container-fluid">
+
+                <!--smart phone view-->
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="#">NOC</a>
+                </div>
+
+                <!--normal view-->
+                <div class="collapse navbar-collapse" id="myNavbar">
+                    <ul class="nav navbar-nav">
+                        <!--link home-->
+                        <li><a href="{% url 'shiftsystem:home' %}">Home</a></li>
+                        <!--link calendar-->
+                        <li><a href="{% url 'shiftsystem:index' %}">Calendar</a></li>
+                        <!--link leave-->
+                        <li><a href="{% url 'shiftsystem:leave' %}">Leave</a></li>
+                        <!--link admin-->
+                        {% if user.is_admin %}
+                            <li><a href="/admin/">Admin</a></li>
+                        {% endif %}
+                    </ul>
+                    <ul class="nav navbar-nav navbar-right">
+                        <!--show the logged-in user and links to the django admin-->
+                        {% if user.is_authenticated %}
+                            <!--link drop down-->
+                            <li class="dropdown">
+                                <li>
+                                    <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                                        <span class="glyphicon glyphicon-user"></span> {{ user }}
+                                        <span class="caret"></span>
+                                    </a>
+                                    {% if user.is_admin %}
+                                        <ul class="dropdown-menu">
+                                            <li><a href="/admin/shiftsystem/worker/add/">Add Worker</a></li>
+                                            <li><a href="/admin/password_change/">Change Password</a></li>
+                                        </ul>
+                                    {% else %}
+                                        <ul class="dropdown-menu">
+                                            <li><a href="#">Permission Denied</a></li>
+                                        </ul>
+                                    {% endif %}
+                                </li>
+                            </li>
+                        {% endif %}
+                        <!--show the link to login/logout in the header-->
+                        {% if user.is_anonymous %}
+                            <li><a href="{% url 'login' %}"><span class="glyphicon glyphicon-log-in"></span> Login</a></li>
+                        {% else %}
+                            <li><a href="{% url 'logout' %}"><span class="glyphicon glyphicon-log-out"></span> Logout</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+
+            </div>
+        </nav>
+
+        <!--rendered contents-->
+        {% block content %}
+        {% endblock %}
+
+        <!--footer-->
+        <footer class="container-fluid text-center">
+            <p>&copy; 2017 HTC Corporation All Rights Reserved</p>
+        </footer>
+
+    </body>
+</html>

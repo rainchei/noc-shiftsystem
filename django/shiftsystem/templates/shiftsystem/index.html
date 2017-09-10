@@ -1,0 +1,224 @@
+{% extends "shiftsystem/base.html" %}
+{% load static %}
+
+{% block style %}
+    <link rel="stylesheet" type="text/css" href="{% static 'shiftsystem/index.css' %}" />
+    <link rel='stylesheet' href="{% static 'bower_components/fullcalendar/dist/fullcalendar.css' %}" />
+{% endblock %}
+
+{% block content %}
+
+    <!--container-->
+    <div class="container-fluid text-center">
+        <div class="row content">
+
+            <!--sidebar-->
+            <div class="col-sm-2 sidenav">
+
+                <!--worker-->
+                <div class="form-group">
+                    <label for="worker"><h4>Worker</h4></label>
+                    <select class="form-control" id="worker" onchange="initialize()" >
+                    {% for worker in object_list %}
+                        {% if worker.username != "nocAdmin" %}
+                            {% if worker == user %}
+                                <option value="{{ worker.username }}-{{ worker.employ_id }}" selected>{{ worker.username }}</option>
+                            {% else %}
+                                <option value="{{ worker.username }}-{{ worker.employ_id }}">{{ worker.username }}</option>
+                            {% endif %}
+                        {% endif %}
+                    {% endfor %}
+                    </select>
+                </div>
+
+                <!--collapsible groups, for easy toggle to hide/show contents-->
+                <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+
+                    <!--collapsible group #1 Schedule-->
+                    <div class="panel panel-default">
+                        <div class="panel-heading" role="tab" id="headingOne">
+                            <h4 class="panel-title">
+                                <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                  New Shift
+                                </a>
+                            </h4>
+                        </div>
+                        <div id="collapseOne" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
+                            <div class="panel-body">
+
+                                <form action="{% url 'shiftsystem:save' %}" id="frm1" method="post">
+                                    {% csrf_token %}
+
+                                    <!--startDay & endDay-->
+                                    <div class="form-group row">
+                                        <label for="startDay">Start Date</label>
+                                        <input type="date" class="form-control" id="startDay" onfocus="minToday()" oninput="minEnd()">
+                                    </div>
+                                    <div class="form-group row">
+                                        <label for="endDay">End Date</label>
+                                        <input type="date" class="form-control" id="endDay" disabled="true">
+                                    </div>
+
+                                    <!--dayOfWeek-->
+                                    <div class="form-group">
+                                        <label for="dayOfWeek">Days Of Week</label>
+                                        <select multiple="multiple" class="form-control" id="dayOfWeek">
+                                            <option value="0">Sun</option>
+                                            <option value="1">Mon</option>
+                                            <option value="2">Tue</option>
+                                            <option value="3">Wed</option>
+                                            <option value="4">Thu</option>
+                                            <option value="5">Fri</option>
+                                            <option value="6">Sat</option>
+                                        </select>
+                                    </div>
+
+                                    <!--shiftType-->
+                                    <div class="form-group">
+                                        <label for="shiftType">Shift Type</label>
+                                        <select class="form-control" id="shiftType">
+                                            <option>Night</option>
+                                            <option>Day</option>
+                                            <option>Swing</option>
+                                        </select>
+                                    </div>
+
+                                    <!--Submit-->
+                                    <button type="button" class="btn btn-primary" onclick="submitShift()">
+                                        <span class="glyphicon glyphicon-calendar"></span> Submit
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!--collapsible group #2 Leave-->
+                    <div class="panel panel-default">
+                        <div class="panel-heading" role="tab" id="headingTwo">
+                            <h4 class="panel-title">
+                                <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                  New Leave
+                                </a>
+                            </h4>
+                        </div>
+                        <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+                            <div class="panel-body">
+                                <form action="{% url 'shiftsystem:save' %}" id="frm2" method="post">
+                                    {% csrf_token %}
+
+                                    <!--fullDay-->
+                                    <div class="checkbox">
+                                        <label for="fullDay">
+                                            <input type="checkbox" id="fullDay" onchange="removeTimeLeave()"><strong>Full Day</strong>
+                                        </label>
+                                    </div>
+
+                                    <!--startDay & endDay-->
+                                    <div class="form-group row">
+                                        <label for="startDayLeave">Start Date</label>
+                                        <input type="date" class="form-control" id="startDayLeave" onfocus="minTodayLeave()" oninput="minEndLeave()">
+                                        <input type="time" class="form-control" id="startTimeLeave" oninput="minEndTimeLeave()" value="00:00">
+                                    </div>
+                                    <div class="form-group row">
+                                        <label for="endDayLeave">End Date</label>
+                                        <input type="date" class="form-control" id="endDayLeave" disabled="true">
+                                        <input type="time" class="form-control" id="endTimeLeave" value="00:00">
+                                    </div>
+
+                                    <!--leaveType-->
+                                    <div class="form-group">
+                                        <label for="leaveType">Leave Type</label>
+                                        <select class="form-control" id="leaveType">
+                                            <option>Annual Leave</option>
+                                            <option>Floating Holiday</option>
+                                            <option>Compensated Leave</option>
+                                            <option>Official Leave</option>
+                                            <option>Personal Leave</option>
+                                            <option>Parental Leave</option>
+                                            <option>Sick Leave</option>
+                                            <option>Menstrual Leave</option>
+                                            <option>Marital Leave</option>
+                                            <option>Funeral Leave</option>
+                                            <option>Birthday Leave</option>
+                                            <option>NoPay Leave</option>
+                                            <option>Rearrange</option>
+                                        </select>
+                                    </div>
+
+                                    <!--deputy-->
+                                    <div class="form-group">
+                                        <label for="deputy">Deputy</label>
+                                        <select class="form-control" id="deputy">
+                                        {% for worker in object_list %}
+                                            <option value="{{ worker.username }}">{{ worker.username }}</option>
+                                        {% endfor %}
+                                        </select>
+                                    </div>
+
+                                    <!--Submit-->
+                                    <button type="button" class="btn btn-primary" onclick="submitLeave()">
+                                        <span class="glyphicon glyphicon-floppy-saved"></span> Submit
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!--collapsible group #3-->
+                    <div class="panel panel-default">
+                        <div class="panel-heading" role="tab" id="headingThree">
+                            <h4 class="panel-title">
+                                <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                  Shift Filter
+                                </a>
+                            </h4>
+                        </div>
+                        <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+                            <div class="panel-body text-left">
+                                <!--shift filter-->
+                                <div class="form-group">
+                                    <div class="checkbox">
+                                        <label>
+                                            <input type="checkbox" id="nocs" value="all">
+                                            <strong>All Members</strong>
+                                        </label>
+                                    </div>
+                                    {% for worker in object_list %}
+                                        {% if worker.username != "nocAdmin" %}
+                                            <div class="checkbox">
+                                                <label>
+                                                    <input type="checkbox" name="noc" value="{{ worker.username }}">
+                                                    {{ worker.username }}
+                                                </label>
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!--dubug-->
+                <!--<button type="button" onclick="debug()">debug</button>-->
+
+            </div>
+
+            <!--calendar-->
+            <div class="col-sm-10 text-left">
+                <br><p id="calendar"></p>
+            </div>
+        </div>
+    </div>
+
+    <!--script: place the Javascript file before the closing body tag.-->
+    <!--static files under bower components.-->
+    <script src="{% static 'bower_components/moment/min/moment.min.js' %}"></script>
+    <script src="{% static 'bower_components/fullcalendar/dist/fullcalendar.js' %}"></script>
+    <!--custom static files under shiftsystem.-->
+    <script src="{% static 'shiftsystem/csrf.js' %}"></script>
+    <script src="{% static 'shiftsystem/global.js' %}"></script>
+    <script src="{% static 'shiftsystem/schedule.js' %}"></script>
+    <script src="{% static 'shiftsystem/leave.js' %}"></script>
+    <script src="{% static 'shiftsystem/calendar.js' %}"></script>
+{% endblock %}

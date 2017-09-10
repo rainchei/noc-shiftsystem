@@ -1,0 +1,46 @@
+{% extends "shiftsystem/base.html" %}
+{% load static %}
+
+{% block style %}
+    <link rel="stylesheet" type="text/css" href="{% static 'shiftsystem/index.css' %}" />
+{% endblock %}
+
+{% block content %}
+
+    <div class="container-fluid text-left">
+        <h3>Schedule</h3>
+
+        {% if object_list %}
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Worker</th>
+                        <th>Employ ID</th>
+                        <th>Shift</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for schedule in object_list %}
+                        <tr>
+                            <th scope="row">{{ forloop.counter }}</th>
+                            <td>{{ schedule.worker.username }}</td>
+                            <td>{{ schedule.worker.employ_id }}</td>
+                            <td>{{ schedule.get_shift_type_display }}</td>
+                            <td>{{ schedule.start_date|date }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <br>
+            <p>No schedules are available currently ...</p>
+            <p>To apply new one, please go to Calendar.</p>
+            <br>
+        {% endif %}
+    </div>
+
+    <!--custom static files under shiftsystem.-->
+    <script src="{% static 'shiftsystem/csrf.js' %}"></script>
+{% endblock %}

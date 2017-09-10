@@ -1,0 +1,50 @@
+{% extends "shiftsystem/base.html" %}
+{% load static %}
+
+{% block style %}
+    <link rel="stylesheet" type="text/css" href="{% static 'shiftsystem/index.css' %}" />
+{% endblock %}
+
+{% block content %}
+
+    <div class="container-fluid text-left">
+        <h3>Leave</h3>
+
+        {% if object_list %}
+            <ul><br>
+            {% for leave in object_list %}
+                <li>
+                    <p><strong>Worker:</strong> {{ leave.worker.username }}</p>
+                    <p><strong>Leave Type:</strong> {{ leave.get_leave_type_display }}</p>
+                    <p><strong>Leave Date:</strong> {{ leave.start_date }} - {{ leave.end_date }}</p>
+                    <p><strong>Deputy:</strong> {{ leave.deputy }}</p>
+
+                    <form action="{% url 'shiftsystem:save' %}" method="post">
+                        {% csrf_token %}
+                        <!--Submit-->
+                        <button type="button" class="btn btn-primary"
+                                onclick="updateDeleted(
+                                '{{leave.worker.username}}',
+                                '{{leave.start_date|date}}',
+                                '{{leave.end_date|date}}'
+                                )">
+                            <span class="glyphicon glyphicon-floppy-remove"></span> Delete
+                        </button>
+                    </form>
+                    <br>
+                </li>
+            {% endfor %}
+            </ul>
+
+        {% else %}
+            <br>
+            <p>No leave events are available currently ...</p>
+            <p>To apply new one, please go to Calendar.</p>
+            <br>
+        {% endif %}
+    </div>
+
+    <!--custom static files under shiftsystem.-->
+    <script src="{% static 'shiftsystem/csrf.js' %}"></script>
+    <script src="{% static 'shiftsystem/cancel.js' %}"></script>
+{% endblock %}
