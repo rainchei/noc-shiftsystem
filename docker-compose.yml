@@ -1,6 +1,6 @@
 django:
   build: ./django/
-  container_name: shiftsys-django
+  container_name: django
   expose:
     - 8001
   volumes_from:
@@ -15,7 +15,7 @@ django_data:
 
 nginx:
   build: ./nginx/
-  container_name: shiftsys-nginx
+  container_name: nginx
   links:
     - django:django
   ports:
