@@ -128,16 +128,15 @@ function submitLeave() {
             // the event storing the leave data, this one is for save changes into model Schedule.
             var scheduleEvent = {};
 
-            // if fullDay is checked, the shift with any matched start must be a full day leave.
+            // If fullDay is checked, the shift with any matched start must be a full day leave.
             // Exclude the matched end for the ONLY shift type that cross a day, which is swing shift.
             // This ensures that, for example, if one has checked fullDay and startDateLeave of 2017-04-12.
             // The swing shift which starts on 2017-04-11 should not be counted as leave event, though it ends
             // on 2017-04-12.
             if (fullDay) {
-                if (  // the shift starts in between of the input leave duration must be a full day leave.
-                startDateLeave <= calendarEvents[i].start &&
-                calendarEvents[i].start < endDateLeave
-                ) {
+                // the shift starts in between of the input leave duration must be a full day leave.
+                if ( startDateLeave <= calendarEvents[i].start &&
+                calendarEvents[i].start < endDateLeave ) {
                     console.log('applying full leave on (', calendarEvents[i].start, calendarEvents[i].end, ') ...');
 
                     scheduleEvent.action = 'update';
@@ -155,10 +154,9 @@ function submitLeave() {
                 }
             }
             else {  // if fullDay is not checked, the input duration should be less than 24 hours.
-                if (  // make sure that the date of input and shift are on the same date.
-                startDateLeave.getMonth() == calendarEvents[i].start.getMonth() &&
-                startDateLeave.getDate() == calendarEvents[i].start.getDate()
-                ) {
+                // make sure that the date of input and shift are on the same date.
+                if ( startDateLeave.getMonth() == calendarEvents[i].start.getMonth() &&
+                startDateLeave.getDate() == calendarEvents[i].start.getDate() ) {
                     console.log('applying partial leave on (', calendarEvents[i].start, calendarEvents[i].end, ') ...');
                     var leaveHours = "";
                     leaveHours = startDateLeave.getHours() + ":" + startDateLeave.getMinutes() + "-" +

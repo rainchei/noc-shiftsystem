@@ -197,7 +197,7 @@ def save_change(request):
         else:  # send back the successfully saved events.
             for x in range(0, len(result)):
                 event = {
-                    x: "event ({0}, {1}, {2}) saved successfully.".format(
+                    x: "event ({0}, {1}, {2})".format(
                         result[x]['action'],
                         timezone.make_aware(datetime.fromtimestamp(result[x]['start'] / 1000.0)),
                         timezone.make_aware(datetime.fromtimestamp(result[x]['end'] / 1000.0))

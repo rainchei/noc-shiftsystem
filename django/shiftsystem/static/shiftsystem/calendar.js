@@ -15,11 +15,19 @@ $(document).ready(function() {
         events: {
             url: "secret/schedules/",
             type: 'get',
-            success: function(doc) {
-                console.log('Received', $(doc).length, 'events.');
+            success: function(events) {
+                getShiftsOnCalendar(events);  // save all unfiltered events first
+                checkCheckbox();
+                events = $.map(events, function(e) {
+                    if (shiftHasFilteredOut(e))
+                        return null;
+                    else
+                        return e;
+                });
+                return events;
             },
             error: function() {
-                alert('There is an error while fetching events.');
+                alert('There is an error while fetching events from database.');
             }
         },
 
@@ -31,16 +39,6 @@ $(document).ready(function() {
             element.attr('title', event.description);
         },
 
-        // triggered after all events have finished rendering, and after pressing prev/next.
-        loading: function(bool) {
-            if (bool) {
-                console.log('The events are being populated from the database ...');
-            }
-            else {
-                console.log('The events have been populated. Start initializing ...');
-                initialize();
-            }
-        },
 
         // send an event of "delete" to database
         eventClick: function(event_click, element) {
@@ -58,11 +56,11 @@ $(document).ready(function() {
                     var eventsCel = [];  // an array for storing leaves to be cancelled.
 
                     alertify.confirm(
-                        "You are about to ...",
+                        "You are about to...",
                         "Cancel the leave of <font style='color: " + event_click.color + "'>" + event_click.worker +
                         " </font> on <font style='color: red'>" + event_click.start['_i'].split('T')[0] + "</font>.",
                         function() {  // when 'ok' is clicked
-                            // Saving newly added events into the database ...
+                            // Saving newly added events into the database...
                             eventsCel.push(event);  // pushing the array if it belongs to the user
                             var json_string = JSON.stringify(eventsCel);
                             $.ajax({
@@ -70,12 +68,11 @@ $(document).ready(function() {
                                 url: "secret/save/",
                                 data: {item: json_string},
                                 success: function(data) {
-                                    console.log('Django has responded:');
+                                    console.log('You have successfully executed...');
                                     for (var i = 0; i < data.length; i++) {
                                         console.log(data[i]);
                                     }
-                                    console.log('Refetching events from the database ...');
-                                    $('#calendar').fullCalendar('refetchEvents');
+                                    reFetchEventsFromDB();
                                 }
                             });
                             alertify.success('Leave cancelled.')
@@ -89,11 +86,11 @@ $(document).ready(function() {
                     var eventsDel = [];  // an array for storing events to be deleted.
 
                     alertify.confirm(
-                        "You are about to ...",
+                        "You are about to...",
                         "Delete <font style='color: " + event_click.color + "'>" + event_click.worker +
                         " </font> on <font style='color: red'>" + event_click.start['_i'].split('T')[0] + "</font>.",
                         function() {  // when 'ok' is clicked
-                            // Saving newly added events into the database ...
+                            // Saving newly added events into the database...
                             eventsDel.push(event);  // pushing the array if it belongs to the user
                             var json_string = JSON.stringify(eventsDel);
                             $.ajax({
@@ -101,12 +98,11 @@ $(document).ready(function() {
                                 url: "secret/save/",
                                 data: {item: json_string},
                                 success: function(data) {
-                                    console.log('Django has responded:');
+                                    console.log('You have successfully executed...');
                                     for (var i = 0; i < data.length; i++) {
                                         console.log(data[i]);
                                     }
-                                    console.log('Refetching events from the database ...');
-                                    $('#calendar').fullCalendar('refetchEvents');
+                                    reFetchEventsFromDB();
                                 }
                             });
                             alertify.success('Shift deleted.')
@@ -118,42 +114,27 @@ $(document).ready(function() {
         },
     });
 
+    // shift filter
     // set the default values of the members to all checked in the shift filter
-    $("#nocs").prop("checked", true);
-    $("input[name='noc']").prop("checked", true);
-
+    $("#nocs").prop("checked", true);  // all members
+    $("input[name='noc']").prop("checked", true);  // single member
+    checkCheckbox();
+    reFetchEventsFromDB();
     // select all and deselect all members
     $("#nocs").click(function() {
-
         if ($("#nocs").prop("checked")) {
             $("input[name='noc']").prop("checked", true);
-            console.log('Refetching events from the database ...');
-            $('#calendar').fullCalendar('refetchEvents');
+            reFetchEventsFromDB();
         }
         else {
             $("input[name='noc']").prop("checked", false);
-            console.log('Removing events on the calendar ...');
+            console.log('Removing events on the calendar...');
             $('#calendar').fullCalendar('removeEvents');
         }
     });
-
     // select single user
     $("input[name='noc']").click(function() {
-
-        $('#calendar').fullCalendar('refetchEvents');
-        initialize();
-    });
-
-    // because the event which triggered after all shifts have been rendered could not be located,
-    // force it to return initial status after clicking prev/next button.
-    $('body').on('click', 'button.fc-prev-button', function() {
-        // set the default values of the members to all checked in the shift filter
-        $("#nocs").prop("checked", true);
-        $("input[name='noc']").prop("checked", true);
-    });
-    $('body').on('click', 'button.fc-next-button', function() {
-        // set the default values of the members to all checked in the shift filter
-        $("#nocs").prop("checked", true);
-        $("input[name='noc']").prop("checked", true);
+        checkCheckbox();
+        reFetchEventsFromDB();
     });
 });

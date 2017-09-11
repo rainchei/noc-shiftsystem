@@ -18,9 +18,9 @@
                 <!--worker-->
                 <div class="form-group">
                     <label for="worker"><h4>Worker</h4></label>
-                    <select class="form-control" id="worker" onchange="initialize()" >
+                    <select class="form-control" id="worker">
                     {% for worker in object_list %}
-                        {% if worker.username != "nocAdmin" %}
+                        {% if worker.username != "noc_manager" %}
                             {% if worker == user %}
                                 <option value="{{ worker.username }}-{{ worker.employ_id }}" selected>{{ worker.username }}</option>
                             {% else %}
@@ -180,11 +180,11 @@
                                     <div class="checkbox">
                                         <label>
                                             <input type="checkbox" id="nocs" value="all">
-                                            <strong>All Members</strong>
+                                            <strong>Employee</strong>
                                         </label>
                                     </div>
                                     {% for worker in object_list %}
-                                        {% if worker.username != "nocAdmin" %}
+                                        {% if worker.username != "noc_manager" %}
                                             <div class="checkbox">
                                                 <label>
                                                     <input type="checkbox" name="noc" value="{{ worker.username }}">
