@@ -263,7 +263,8 @@ function reFetchEventsFromDB() {
 }
 
 
-// Alertify function, which defines warning model using dialog factory
+// Alertify function
+// defines warning model using dialog factory
 if (!alertify.showWarning) {
     alertify.dialog('showWarning', function factory(){
         return {
@@ -275,7 +276,7 @@ if (!alertify.showWarning) {
         };
     }, false, 'alert');
 }
-// alertify function, which defines error model using dialog factory
+// defines error model using dialog factory
 if (!alertify.showFailure) {
     alertify.dialog('showFailure', function factory(){
         return {
