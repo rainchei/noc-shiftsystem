@@ -45,14 +45,15 @@ $(document).ready(function() {
             var event = normalizeEvent(event_click);
             event.action = "delete";
 
-            var eventsAdd = [];  // an array for storing events to be deleted.
+            var eventsDel = [];  // an array for storing events to be deleted.
             // check if the event belongs to the user
             var username = document.getElementById('worker').value.split('-')[0];
+
             if (event.worker == username) {
 
                 // Saving newly added events into the database ...
-                eventsAdd.push(event);  // pushing the array if it belongs to the user
-                var json_string = JSON.stringify(eventsAdd);
+                eventsDel.push(event);  // pushing the array if it belongs to the user
+                var json_string = JSON.stringify(eventsDel);
                 $.ajax({
                     type: "POST",
                     url: "secret/save/",
@@ -83,7 +84,7 @@ $(document).ready(function() {
     // select all and deselect all members
     $("#nocs").click(function() {
 
-        if($("#nocs").prop("checked")) {
+        if ($("#nocs").prop("checked")) {
             $("input[name='noc']").prop("checked", true);
             console.log('Refetching events from the database ...');
             $('#calendar').fullCalendar('refetchEvents');

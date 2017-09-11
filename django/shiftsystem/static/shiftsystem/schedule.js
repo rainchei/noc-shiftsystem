@@ -129,9 +129,8 @@ function submitShift() {
     }
 
     if (inputDays.length == 0) {
-        window.alert(
-            "Error!\n" +
-            "No match to the input values.\n" +
+        alertify.showFailure(
+            "No match to the input values.<br>" +
             "Perhaps to check the days of week again?"
         );
     } else {
@@ -184,13 +183,12 @@ function submitShift() {
                 eventsAdd.push(event);  // for saving into database.
             }
         }
-        // if any shift already exists on the calendar or any error happens, window.alert to check the console log.
+        // if any shift already exists on the calendar or any error happens, alertify.alert to check the console log.
         if (invalidAdd == inputDays.length) {
 
-            window.alert(
-                "Error!\n" +
-                "No match to the input values.\n" +
-                "Perhaps to check the start/end date again?\n" +
+            alertify.showFailure(
+                "No match to the input values.<br>" +
+                "Perhaps to check the start/end date again?<br>" +
                 "For more detail, please open the console log."
             );
         } else if (invalidAdd > 0) {
@@ -212,9 +210,8 @@ function submitShift() {
                 }
             });
 
-            window.alert(
-                "Error!\n" +
-                invalidAdd + " counts of invalid events\n" +
+            alertify.showFailure(
+                invalidAdd + " counts of invalid events.<br>" +
                 "For more detail, please open the console log."
             );
         } else {
@@ -272,4 +269,29 @@ function normalizeEvent(e) {
     };
 
     return event;
+}
+
+// alertify function, which defines success model using dialog factory
+if (!alertify.showWarning) {
+    alertify.dialog('showWarning', function factory(){
+        return {
+            build: function() {
+                var html = '<i class="fa fa-cog fa-spin" style="color: red; vertical-align: middle; margin-right: 20px; font-size: 20px;"></i>';
+                html += ' WARNING';
+                this.setHeader(html);
+            }
+        };
+    }, false, 'alert');
+}
+// define failure modal using dialog factory
+if (!alertify.showFailure) {
+    alertify.dialog('showFailure', function factory(){
+        return {
+            build: function() {
+                var html = '<i class="fa fa-exclamation-triangle" style="color: red; vertical-align: middle; margin-right: 20px; font-size: 20px;"></i>';
+                html += ' ERROR';
+                this.setHeader(html);
+            }
+        };
+    }, false, 'alert');
 }
