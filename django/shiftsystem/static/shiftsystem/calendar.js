@@ -3,6 +3,9 @@ $(document).ready(function() {
 
     // page is now ready, initialize the calendar...
     $('#calendar').fullCalendar({
+
+        editable: false,
+
         header: {
             left: 'prev,next today',
             center: 'title',
@@ -41,37 +44,48 @@ $(document).ready(function() {
 
         // send an event of "delete" to database
         eventClick: function(event_click, element) {
-
-            var event = normalizeEvent(event_click);
-            event.action = "delete";
-
-            var eventsDel = [];  // an array for storing events to be deleted.
-            // check if the event belongs to the user
-            var username = document.getElementById('worker').value.split('-')[0];
-
-            if (event.worker == username) {
-
-                // Saving newly added events into the database ...
-                eventsDel.push(event);  // pushing the array if it belongs to the user
-                var json_string = JSON.stringify(eventsDel);
-                $.ajax({
-                    type: "POST",
-                    url: "secret/save/",
-                    data: {item: json_string},
-                    success: function(data) {
-                        console.log('Django has responded:');
-                        for (var i = 0; i < data.length; i++) {
-                            console.log(data[i]);
-                        }
-                        console.log('Refetching events from the database ...');
-                        $('#calendar').fullCalendar('refetchEvents');
-                    }
-                });
-            } else {
-                window.alert(
-                    "Sorry,\n" +
-                    "You are not the owner of this shift.\n" +
+            if (event_click.editable != true) {
+                alertify.showFailure(
+                    "This shift is not editable.<br>" +
                     "Perhaps to check the worker again?"
+                );
+            }
+            else {
+                var event = normalizeEvent(event_click);
+                event.action = "delete";
+
+                var eventsDel = [];  // an array for storing events to be deleted.
+                // check if the event belongs to the user
+                var username = document.getElementById('worker').value.split('-')[0];
+
+                alertify.confirm(
+                    "You are about to ...",
+                    "Delete <font style='color: " + event_click.color + "'>" + event_click.worker +
+                    " </font> on <font style='color: red'>" + event_click.start['_i'].split('T')[0] + "</font>.",
+                    function() {  // when 'ok' is clicked
+                        if (event.worker == username) {
+                            // Saving newly added events into the database ...
+                            eventsDel.push(event);  // pushing the array if it belongs to the user
+                            var json_string = JSON.stringify(eventsDel);
+                            $.ajax({
+                                type: "POST",
+                                url: "secret/save/",
+                                data: {item: json_string},
+                                success: function(data) {
+                                    console.log('Django has responded:');
+                                    for (var i = 0; i < data.length; i++) {
+                                        console.log(data[i]);
+                                    }
+                                    console.log('Refetching events from the database ...');
+                                    $('#calendar').fullCalendar('refetchEvents');
+                                }
+                            });
+                            alertify.success('Deleted')
+                        } else {
+
+                        }
+                    },
+                    function() { alertify.error("Cancelled.") }  // when 'cancel' is clicked
                 );
             }
         },
