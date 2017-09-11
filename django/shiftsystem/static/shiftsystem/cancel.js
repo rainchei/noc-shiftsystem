@@ -16,11 +16,11 @@ function updateDeleted(worker, start, end) {
     event.start = start.getTime();
     event.end = end.getTime();
 
-    var eventsAdd = [];
+    var eventsCancel = [];
 
     // Saving newly added events into the database ...
-    eventsAdd.push(event);
-    var json_string = JSON.stringify(eventsAdd);
+    eventsCancel.push(event);
+    var json_string = JSON.stringify(eventsCancel);
     $.ajax({
         type: "POST",
         url: "/shiftsystem/secret/save/",

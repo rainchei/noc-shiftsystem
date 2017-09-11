@@ -173,7 +173,7 @@ def save_change(request):
                 leave_success += 1
 
             elif action == "cancel":
-                # update the instances of the worker's schedule set
+                # remove the instance of the worker's leave set
                 shifts = worker.schedule_set.filter(start_date__gte=s_date+timedelta(hours=-8))\
                     .filter(start_date__lt=e_date+timedelta(hours=-8))
                 for shift in shifts:

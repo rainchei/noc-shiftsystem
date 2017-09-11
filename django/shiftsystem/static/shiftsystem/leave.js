@@ -95,18 +95,16 @@ function submitLeave() {
     else if (startDateLeave.getDate() != endDateLeave.getDate()) {
     // only fullDay event could have different start/end date, here's to ensure of it even someone hand type-in.
         valid = "bad";
-        window.alert(
-            "Sorry,\n" +
-            "Please check 'Full Day' to input different days.\n" +
+        alertify.showFailure(
+            "Please check 'Full Day' to input different days.<br>" +
             "Un-check 'Full Day' to input different times"
         );
     }
     else if (startDateLeave >= endDateLeave) {
     // the end must be greater than the start, raise an alert if not.
         valid = "bad";
-        window.alert(
-            "Error!\n" +
-            "The end must be greater than the start.\n" +
+        alertify.showFailure(
+            "The end must be greater than the start.<br>" +
             "Perhaps to check the input time again?"
         );
     }
@@ -183,9 +181,8 @@ function submitLeave() {
         }
 
         if (noMatchCount == calendarEvents.length) {  // if all calendarEvents have no match to the input values.
-            window.alert(
-                "Error!\n" +
-                "No shifts match to the input values.\n" +
+            alertify.showFailure(
+                "No shifts match to the input values.<br>" +
                 "Perhaps to check the start/end date again?"
             );
         } else {  // save the eventsAdd if at least one event is valid.

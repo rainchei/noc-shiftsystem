@@ -271,7 +271,7 @@ function normalizeEvent(e) {
     return event;
 }
 
-// alertify function, which defines success model using dialog factory
+// alertify function, which defines warning model using dialog factory
 if (!alertify.showWarning) {
     alertify.dialog('showWarning', function factory(){
         return {
@@ -283,7 +283,7 @@ if (!alertify.showWarning) {
         };
     }, false, 'alert');
 }
-// define failure modal using dialog factory
+// alertify function, which defines error model using dialog factory
 if (!alertify.showFailure) {
     alertify.dialog('showFailure', function factory(){
         return {
