@@ -5,7 +5,8 @@ from datetime import datetime, timedelta
 from django.contrib.auth.mixins import LoginRequiredMixin
 import json
 
-from .models import Schedule, Worker, Leave
+# from .models import Schedule, Worker, Leave
+from .models import Schedule, Worker
 
 
 class IndexView(LoginRequiredMixin, ListView):
@@ -39,13 +40,43 @@ def schedules(request):
 
     for shift in shifts:  # it executes its database query the first time you iterate over it.
 
-        shift_type = ""  # default empty string
-        if shift.shift_type == "NT":
-            shift_type = "Night"
-        elif shift.shift_type == "DY":
-            shift_type = "Day"
-        elif shift.shift_type == "SG":
-            shift_type = "Swing"
+        # shift_type = ""  # default empty string
+        # if shift.shift_type == "NT":
+        #     shift_type = "Night"
+        # elif shift.shift_type == "DY":
+        #     shift_type = "Day"
+        # elif shift.shift_type == "SG":
+        #     shift_type = "Swing"
+        shift_type_choices = (
+            ('NT', 'Night'),
+            ('DY', 'Day'),
+            ('SG', 'Swing'),
+        )
+        for s in shift_type_choices:
+            if shift.shift_type == s[0]:
+                shift_type = s[1]
+
+        leave_type_choices = (
+            ('ON', 'On Duty'),
+            ('AN', 'Annual Leave'),
+            ('FL', 'Floating Holiday'),
+            ('CO', 'Compensated Leave'),
+            ('OF', 'Official Leave'),
+            ('PE', 'Personal Leave'),
+            ('PA', 'Parental Leave'),
+            ('SI', 'Sick Leave'),
+            ('ME', 'Menstrual Leave'),
+            ('MA', 'Marital Leave'),
+            ('FU', 'Funeral Leave'),
+            ('BI', 'Birthday Leave'),
+            ('NO', 'NoPay Leave'),
+            ('RE', 'Rearrange'),
+        )
+        leave_type = "On Duty"  # default
+        for l in leave_type_choices:
+            if shift.leave_type == l[0]:
+                leave_type = l[1]
+                break
 
         start_milli = int(shift.start_date.timestamp()) * 1000  # for event id
 
@@ -55,7 +86,11 @@ def schedules(request):
             'end': shift.end_date + timedelta(hours=8),
             'type': shift_type,
             'color': shift.worker.color,
-            'description': "{0}\n{1}".format(shift.worker.username, shift_type),
+            'description': "{0}\n{1}\n{2}\nDeputy: {3}".format(
+                shift.worker.username,
+                shift_type,
+                leave_type,
+                shift.deputy),
             'id': "{0}{1}".format(shift.worker.employ_id, start_milli),  # id: employ_id + start
             'title': shift.title,
         }
@@ -78,7 +113,6 @@ def save_change(request):
         # waiting to be changed too ...
         add_success = 0  # count the success add
         delete_success = 0  # count the success delete
-        update_success = 0  # count the success update
         leave_success = 0  # count the success leave
         cancel_success = 0  # count the success cancel
 
@@ -87,46 +121,42 @@ def save_change(request):
             username = result[x]['worker']
             worker = Worker.objects.get(username=username)  # leverage username to get the instance worker
 
-            l_type = s_type = ""
-
             if 'type' in result[x]:
-                l_type = s_type = result[x]['type']  # schedule:shift_type
+                s_type = result[x]['type']  # schedule:shift_type
+            else:
+                s_type = ""
+            shift_type_choices = (
+                ('NT', 'Night'),
+                ('DY', 'Day'),
+                ('SG', 'Swing'),
+            )
+            for s in shift_type_choices:
+                if s_type == s[1]:
+                    sh_type = s[0]
 
-            sh_type = ""
-            le_type = ""
-            if s_type == "Night":
-                sh_type = "NT"
-            elif s_type == "Day":
-                sh_type = "DY"
-            elif s_type == "Swing":
-                sh_type = "SG"
-
-            if l_type == "Annual Leave":
-                le_type = "AN"
-            elif l_type == "Floating Holiday":
-                le_type = "FL"
-            elif l_type == "Compensated Leave":
-                le_type = "CO"
-            elif l_type == "Official Leave":
-                le_type = "OF"
-            elif l_type == "Personal Leave":
-                le_type = "PE"
-            elif l_type == "Parental Leave":
-                le_type = "PA"
-            elif l_type == "Sick Leave":
-                le_type = "SI"
-            elif l_type == "Menstrual Leave":
-                le_type = "ME"
-            elif l_type == "Marital Leave":
-                le_type = "MA"
-            elif l_type == "Funeral Leave":
-                le_type = "FU"
-            elif l_type == "Birthday Leave":
-                le_type = "BI"
-            elif l_type == "NoPay Leave":
-                le_type = "NO"
-            elif l_type == "Rearrange":
-                le_type = "RE"
+            if 'leave_type' in result[x]:
+                l_type = result[x]['leave_type']
+            else:
+                l_type = ""
+            leave_type_choices = (
+                ('AN', 'Annual Leave'),
+                ('FL', 'Floating Holiday'),
+                ('CO', 'Compensated Leave'),
+                ('OF', 'Official Leave'),
+                ('PE', 'Personal Leave'),
+                ('PA', 'Parental Leave'),
+                ('SI', 'Sick Leave'),
+                ('ME', 'Menstrual Leave'),
+                ('MA', 'Marital Leave'),
+                ('FU', 'Funeral Leave'),
+                ('BI', 'Birthday Leave'),
+                ('NO', 'NoPay Leave'),
+                ('RE', 'Rearrange'),
+            )
+            for l in leave_type_choices:
+                if l_type == l[1]:
+                    le_type = l[0]
+                    break
 
             start, end = int(result[x]['start']), int(result[x]['end'])
             s_date = timezone.make_aware(datetime.fromtimestamp(start/1000.0))  # schedule:start_date
@@ -151,7 +181,7 @@ def save_change(request):
                 ).delete()
                 delete_success += 1
 
-            elif action == "update":
+            elif action == "leave":
                 # update the instance of the worker's schedule set
                 shift = worker.schedule_set.get(
                     start_date=s_date,
@@ -159,17 +189,9 @@ def save_change(request):
                     shift_type=sh_type,
                 )
                 shift.title = result[x]['title']
+                shift.leave_type = le_type
+                shift.deputy = result[x]['deputy']
                 shift.save()
-                update_success += 1
-
-            elif action == "leave":
-                # create new instances of the worker's leave set
-                worker.leave_set.create(
-                    start_date=s_date,
-                    end_date=e_date,
-                    leave_type=le_type,
-                    deputy=result[x]['deputy'],
-                )
                 leave_success += 1
 
             elif action == "cancel":
@@ -178,22 +200,19 @@ def save_change(request):
                     .filter(start_date__lt=e_date+timedelta(hours=-8))
                 for shift in shifts:
                     shift.title = ""
+                    shift.leave_type = ""
+                    shift.deputy = ""
                     shift.save()
-
-                # delete the instances of the worker's leave set
-                worker.leave_set.get(
-                    start_date=s_date,
-                ).delete()
                 cancel_success += 1
 
         # sending back the response of success or error on shifts saving
-        total_success = add_success + delete_success + leave_success + update_success + cancel_success
+        total_success = add_success + delete_success + leave_success + cancel_success
         data = []
 
         if total_success == 0:
             data.append({'error': 'no events received!'})
         elif total_success != len(result):  # the number of requests and responses should be the same.
-            data.append({'error': 'events not completely saved!'})
+            data.append({'error': 'events not completely processed!'})
         else:  # send back the successfully saved events.
             for x in range(0, len(result)):
                 event = {
@@ -209,15 +228,6 @@ def save_change(request):
 
     else:  # raise http 404 if it is not the ajax and post request.
         raise Http404
-
-
-class LeaveView(LoginRequiredMixin, ListView):
-    """
-    Render the template leave.html to display the leave instances.
-    """
-    model = Leave
-    template_name = 'shiftsystem/leave.html'
-    login_url = '/login/'
 
 
 class HomeView(ListView):

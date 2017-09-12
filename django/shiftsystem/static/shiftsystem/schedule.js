@@ -30,43 +30,6 @@ function minEnd() {
 }
 
 
-// Return an array of objects in json from the database that belongs to current worker.
-function getShiftsOnCalendar(objectEvents) {
-
-    var event = {};
-    var events = [];
-
-    for (var i = 0; i < objectEvents.length; i++) {
-        // format 2017-04-14T00:00:00Z
-        var start = objectEvents[i].start;
-        var end = objectEvents[i].end;
-        // start
-        var sy = Number(start.split('T')[0].split('-')[0]);  // year
-        var sm = Number(start.split('T')[0].split('-')[1]) - 1;  // month, 0 is January
-        var sd = Number(start.split('T')[0].split('-')[2]);  // day
-        var sh = Number(start.split('T')[1].split(':')[0]);  // hour
-        var st = Number(start.split('T')[1].split(':')[1]);  // minute
-        // end
-        var ey = Number(end.split('T')[0].split('-')[0]);  // year
-        var em = Number(end.split('T')[0].split('-')[1]) - 1;  // month, 0 is January
-        var ed = Number(end.split('T')[0].split('-')[2]);  // day
-        var eh = Number(end.split('T')[1].split(':')[0]);  // hour
-        var et = Number(end.split('T')[1].split(':')[1]);  // minute
-        // json
-        event = {
-            'worker': objectEvents[i].worker,
-            'start': new Date(sy, sm, sd, sh, st),
-            'end': new Date(ey, em, ed, eh, et),
-            'type': objectEvents[i].type,
-            'id': objectEvents[i].id,  // use id to locate the event
-        };
-        events.push(event);
-    }
-    // Save the calendar data which rendered from database for later event of invalid comparison
-    MODULE.shiftsOnCalendar = events;
-}
-
-
 // Press button "Submit" to save the events into database.
 function submitShift() {
 
@@ -198,31 +161,14 @@ function submitShift() {
 }
 
 
-// Convert datetime object formats for feature of removing event by clicking it, see line37 in calendar.js
+// Convert the string to datetime for some validations
 function normalizeEvent(e) {
 
     var event = {};
-
-    // format 2017-04-14T00:00:00Z
-    var start = e.start['_i'];
-    var end = e.end['_i'];
-    // start
-    var sy = Number(start.split('T')[0].split('-')[0]);  // year
-    var sm = Number(start.split('T')[0].split('-')[1]) - 1;  // month, 0 is January
-    var sd = Number(start.split('T')[0].split('-')[2]);  // day
-    var sh = Number(start.split('T')[1].split(':')[0]);  // hour
-    var st = Number(start.split('T')[1].split(':')[1]);  // minute
-    // end
-    var ey = Number(end.split('T')[0].split('-')[0]);  // year
-    var em = Number(end.split('T')[0].split('-')[1]) - 1;  // month, 0 is January
-    var ed = Number(end.split('T')[0].split('-')[2]);  // day
-    var eh = Number(end.split('T')[1].split(':')[0]);  // hour
-    var et = Number(end.split('T')[1].split(':')[1]);  // minute
-    // json
     event = {
         'worker': e.worker,
-        'start': new Date(sy, sm, sd, sh, st).getTime(),
-        'end': new Date(ey, em, ed, eh, et).getTime(),
+        'start': e.start['_i'].getTime(),
+        'end': e.end['_i'].getTime(),
         'type': e.type,
         'color': e.color,
         'description': e.description,  // split("\n")[0] is username, split("\n")[1] is shift_type
@@ -230,6 +176,39 @@ function normalizeEvent(e) {
     };
 
     return event;
+}
+
+
+// Return an array of objects in json for some validations
+function getShiftsOnCalendar(objectEvents) {
+
+    var event = {};
+    var events = [];
+
+    for (var i = 0; i < objectEvents.length; i++) {
+        // format 2017-04-14T00:00:00Z
+        var start = objectEvents[i].start;
+        var end = objectEvents[i].end;
+        // start
+        var sy = Number(start.split('T')[0].split('-')[0]);  // year
+        var sm = Number(start.split('T')[0].split('-')[1]) - 1;  // month, 0 is January
+        var sd = Number(start.split('T')[0].split('-')[2]);  // day
+        var sh = Number(start.split('T')[1].split(':')[0]);  // hour
+        var st = Number(start.split('T')[1].split(':')[1]);  // minute
+        // end
+        var ey = Number(end.split('T')[0].split('-')[0]);  // year
+        var em = Number(end.split('T')[0].split('-')[1]) - 1;  // month, 0 is January
+        var ed = Number(end.split('T')[0].split('-')[2]);  // day
+        var eh = Number(end.split('T')[1].split(':')[0]);  // hour
+        var et = Number(end.split('T')[1].split(':')[1]);  // minute
+        // json
+        objectEvents[i].start = new Date(sy, sm, sd, sh, st)
+        objectEvents[i].end = new Date(ey, em, ed, eh, et)
+
+        events.push(objectEvents[i]);
+    }
+    // Save the calendar data which rendered from database for later event of invalid comparison
+    MODULE.shiftsOnCalendar = events;
 }
 
 

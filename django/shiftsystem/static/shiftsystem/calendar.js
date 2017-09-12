@@ -35,7 +35,6 @@ $(document).ready(function() {
 
         // display description when hovering onto events
         eventRender: function(event, element) {
-
             element.attr('title', event.description);
         },
 
@@ -58,7 +57,7 @@ $(document).ready(function() {
                     alertify.confirm(
                         "You are about to...",
                         "Cancel the leave of <font style='color: " + event_click.color + "'>" + event_click.worker +
-                        " </font> on <font style='color: red'>" + event_click.start['_i'].split('T')[0] + "</font>.",
+                        " </font> on <font style='color: red'>" + event_click.start['_i'].toDateString() + "</font>.",
                         function() {  // when 'ok' is clicked
                             // Saving newly added events into the database...
                             eventsCel.push(event);  // pushing the array if it belongs to the user
@@ -88,7 +87,7 @@ $(document).ready(function() {
                     alertify.confirm(
                         "You are about to...",
                         "Delete <font style='color: " + event_click.color + "'>" + event_click.worker +
-                        " </font> on <font style='color: red'>" + event_click.start['_i'].split('T')[0] + "</font>.",
+                        " </font> on <font style='color: red'>" + event_click.start['_i'].toDateString() + "</font>.",
                         function() {  // when 'ok' is clicked
                             // Saving newly added events into the database...
                             eventsDel.push(event);  // pushing the array if it belongs to the user

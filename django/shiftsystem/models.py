@@ -126,44 +126,15 @@ class Schedule(models.Model):
         unique_for_date='start_date',
     )
 
-    # to record the leave start/end time
+    # Leave start/end time
     title = models.CharField(
-        max_length=12,
         default="",
+        max_length=12,
     )
 
-    # At the moment of logging, the users' employ_id.
-    login_id = models.CharField('the owner of creation or update', max_length=10)
-    # The moment of creation
-    create_date = models.DateTimeField('the date of creation', auto_now_add=True)
-    # The moment of update
-    update_date = models.DateTimeField('the date of update', auto_now=True)
-
-    def __str__(self):
-        # Overrides method in Model.
-        return "{date}-{type}".format(date=self.start_date, type=self.shift_type)
-
-    class Meta:
-        # Workers can only schedule one shift in a day.
-        unique_together = ('worker', 'start_date')
-
-
-class Leave(models.Model):
-
-    # Generally, a leave application be accepted only if the date is consistent with the schedule.
-    # Though, it is not validated when saving into database, therefore it has to grab leave records
-    # from view.py and apply them in accordance with the schedule before returning to front-end.
-    # A many-to-one relationship. Required field 'worker' representing the shift owner in parent class.
-    worker = models.ForeignKey(
-        Worker,
-        on_delete=models.CASCADE,
-        max_length=10,
-    )
-    start_date = models.DateTimeField('leave starts on')
-    end_date = models.DateTimeField('leave ends on')
-
-    # Define leave choices, which includes the actual value and a readable name for each.
+    # Define leave type choices, which includes the actual value and a readable name for each.
     LEAVE_TYPE_CHOICES = (
+        ('ON', 'On Duty'),
         ('AN', 'Annual Leave'),
         ('FL', 'Floating Holiday'),
         ('CO', 'Compensated Leave'),
@@ -179,24 +150,28 @@ class Leave(models.Model):
         ('RE', 'Rearrange'),
     )
     leave_type = models.CharField(
+        default="ON",
         max_length=2,
         choices=LEAVE_TYPE_CHOICES,
     )
 
-    # Choose the one who's gonna take over the works.
+    # One gonna take over the works.
     deputy = models.CharField(
+        default="None",
         verbose_name='responsibility goes to',
         max_length=20,
     )
 
-    # At the moment of logging, the users' employ_id.
-    login_id = models.CharField('who sent this leave application', max_length=10)
-    # The moment of creation of this leave
-    create_date = models.DateTimeField('the date when this leave application sent', auto_now_add=True)
+    # At the moment of login, the users' employ_id.
+    login_id = models.CharField('the owner of creation or update', max_length=10)
+    # The moment of creation
+    create_date = models.DateTimeField('the date of creation', auto_now_add=True)
+    # The moment of update
+    update_date = models.DateTimeField('the date of update', auto_now=True)
 
     def __str__(self):
         # Overrides method in Model.
-        return "from {start} to {end}".format(start=self.start_date, end=self.end_date)
+        return "{date}-{type}".format(date=self.start_date, type=self.shift_type)
 
     class Meta:
         # Workers can only schedule one shift in a day.
