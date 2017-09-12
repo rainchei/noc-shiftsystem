@@ -5,7 +5,6 @@ from datetime import datetime, timedelta
 from django.contrib.auth.mixins import LoginRequiredMixin
 import json
 
-# from .models import Schedule, Worker, Leave
 from .models import Schedule, Worker
 
 

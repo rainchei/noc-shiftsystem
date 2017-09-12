@@ -42,7 +42,7 @@ $(document).ready(function() {
         // send an event of "delete" to database
         eventClick: function(event_click, element) {
             if (event_click.editable == true) {
-                alertify.showFailure(
+                alertify.showWarning(
                     "This shift is not editable.<br>" +
                     "Perhaps to check the worker again?"
                 );
