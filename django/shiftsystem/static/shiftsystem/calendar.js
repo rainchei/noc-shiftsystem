@@ -47,19 +47,17 @@ $(document).ready(function() {
                 );
             }
             else {  // if shift is editable
-                var event = normalizeEvent(event_click);
-
+            var event = normalizeEvent(event_click);
                 if (event_click.textColor == 'black') {  // cancelling leaves
-                    event.action = "cancel";
-                    var eventsCel = [];  // an array for storing leaves to be cancelled.
-
                     alertify.confirm(
                         "You are about to...",
                         "Cancel the leave of <font style='color: " + event_click.color + "'>" + event_click.worker +
                         " </font> on <font style='color: red'>" + event_click.start['_i'].toDateString() + "</font>.",
                         function() {  // when 'ok' is clicked
-                            // Saving newly added events into the database...
-                            eventsCel.push(event);  // pushing the array if it belongs to the user
+                            event.action = "cancel";
+                            var eventsCel = [];  // an array for storing leaves to be cancelled.
+                            // ask the database to cancel the leave...
+                            eventsCel.push(event);
                             var json_string = JSON.stringify(eventsCel);
                             $.ajax({
                                 type: "POST",
@@ -77,19 +75,16 @@ $(document).ready(function() {
                         },
                         function() { alertify.error("Cancelled.") }  // when 'cancel' is clicked
                     );
-
-
                 } else {  // deleting shifts
-                    event.action = "delete";
-                    var eventsDel = [];  // an array for storing events to be deleted.
-
                     alertify.confirm(
                         "You are about to...",
                         "Delete <font style='color: " + event_click.color + "'>" + event_click.worker +
                         " </font> on <font style='color: red'>" + event_click.start['_i'].toDateString() + "</font>.",
                         function() {  // when 'ok' is clicked
-                            // Saving newly added events into the database...
-                            eventsDel.push(event);  // pushing the array if it belongs to the user
+                            event.action = "delete";
+                            var eventsDel = [];  // an array for storing events to be deleted.
+                            // ask the database to delete the shift...
+                            eventsDel.push(event);
                             var json_string = JSON.stringify(eventsDel);
                             $.ajax({
                                 type: "POST",
@@ -111,39 +106,81 @@ $(document).ready(function() {
             }
         },
 
-        eventDrop: function(event, delta, revertFunc) {
-//            if (!confirm("Are you sure about this change?")) {
-//                revertFunc();
-//            }
-            dropped_date = new Date(Number(event.start));
-            alertify.confirm(
-                "You are about to...",
-                "Move <font style='color: " + event.color + "'>" + event.worker +
-                " </font> from <font style='color: red'>" + event.start['_i'].toDateString() + "</font> to " +
-                "<font style='color: red'>" + dropped_date.toDateString() + "</font>.",
-                function() {  // when 'ok' is clicked
-//                    // Saving newly added events into the database...
-//                    eventsDel.push(event);  // pushing the array if it belongs to the user
-//                    var json_string = JSON.stringify(eventsDel);
-//                    $.ajax({
-//                        type: "POST",
-//                        url: "secret/save/",
-//                        data: {item: json_string},
-//                        success: function(data) {
-//                            console.log('You have successfully executed...');
-//                            for (var i = 0; i < data.length; i++) {
-//                                console.log(data[i]);
-//                            }
-//                            reFetchEventsFromDB();
-//                        }
-//                    });
-                    alertify.success(event.start['_i'].toDateString() + ' moved to ' + dropped_date.toDateString())
-                },
-                function() {  // when 'cancel' is clicked
-                    revertFunc();
-                    alertify.error("Cancelled.")
-                }
-            );
+        eventDrop: function(event_moved, delta, revertFunc) {
+            if (event_moved.title) {  // the shifts having leave applied could not be moved.
+                revertFunc();
+                alertify.showWarning(
+                    "Please cancel the leave before moving the shift."
+                );
+            } else {
+                // from this date
+                var from_date = event_moved.start['_i'];
+                // change to this date
+                var to_date_s = new Date(Number(event_moved.start));  // this time would somehow has been plus 8 hours.
+                var to_date_e = new Date(Number(event_moved.end));  // this time would somehow has been plus 8 hours.
+                alertify.confirm(
+                    "You are about to...",
+                    "Move <font style='color: " + event_moved.color + "'>" + event_moved.worker +
+                    " </font> from <font style='color: red'>" + from_date.toDateString() + "</font> to " +
+                    "<font style='color: red'>" + to_date_s.toDateString() + "</font>.",
+                    function() {  // when 'ok' is clicked
+                        var from_event = normalizeEvent(event_moved);
+                        from_event.action = "delete";
+                        var to_event = normalizeEvent(event_moved);
+                        to_event.action = "add";
+                        to_event.start = to_date_s.getTime() - 28800000;  // 8 hours = 28800 seconds
+                        to_event.end = to_date_e.getTime() - 28800000;
+                        to_event.id = event_moved.id.slice(0,7) + to_event.start;
+                        // let's validate that...
+                        // a shift cannot be save twice (with same id)
+                        var overlap = false;
+                        var to_event_s = new Date(to_event.start);
+                        var today = new Date();
+                        for (var i = 0; i < MODULE.shiftsOnCalendar.length; i++) {
+                            if (MODULE.shiftsOnCalendar[i].id == to_event.id) {
+                                overlap = true;
+                                console.log("[ERROR] " + to_event.worker + " on", to_event_s, "is already saved in db.");
+                                break;
+                            }
+                        }
+                        if (overlap) {
+                            revertFunc();
+                            alertify.showFailure(
+                                "Oops! Something went wrong...<br>" +
+                                "For more detail, please open the console log."
+                            );
+                        } else if (to_event_s < today) {  // the shift cannot be moved to the date before today.
+                            revertFunc();
+                            alertify.showWarning(
+                                "The shift cannot be moved to the date before today."
+                            );
+                        } else {
+                            var eventsDrop = [];  // an array for storing shifts to be deleted(from) and to be added(to).
+                            // ask the database to add the shift...
+                            eventsDrop.push(from_event, to_event);
+                            console.log(eventsDrop);
+                            var json_string = JSON.stringify(eventsDrop);
+                            $.ajax({
+                                type: "POST",
+                                url: "secret/save/",
+                                data: {item: json_string},
+                                success: function(data) {
+                                    console.log('You have successfully executed...');
+                                    for (var i = 0; i < data.length; i++) {
+                                        console.log(data[i]);
+                                    }
+                                    reFetchEventsFromDB();
+                                }
+                            });
+                            alertify.success(from_date.toDateString() + ' moved to ' + to_date_s.toDateString())
+                        }
+                    },
+                    function() {  // when 'cancel' is clicked
+                        revertFunc();
+                        alertify.error("Cancelled.")
+                    }
+                );
+            }
         }
     });
 

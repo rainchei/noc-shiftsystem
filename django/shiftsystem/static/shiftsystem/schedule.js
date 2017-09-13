@@ -246,6 +246,8 @@ function reFetchEventsFromDB() {
 function enableWorkerShifts(e) {
     var employ_id = document.getElementById('worker').value.split('-')[1];
     var today = new Date();
+    // editable if the shift...
+    // belongs to the current worker; later than today
     if (e.id.slice(0,7) == employ_id && e.id.slice(7) >= today) {
         e.editable = true;
     }
