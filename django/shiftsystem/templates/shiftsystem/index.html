@@ -18,7 +18,7 @@
                 <!--worker-->
                 <div class="form-group">
                     <label for="worker"><h4>Worker</h4></label>
-                    <select class="form-control" id="worker">
+                    <select class="form-control" id="worker" onchange="reFetchEventsFromDB()">
                     {% for worker in object_list %}
                         {% if worker.username != "noc_manager" %}
                             {% if worker == user %}
@@ -200,7 +200,7 @@
                 </div>
 
                 <!--dubug-->
-                <!--<button type="button" onclick="debug()">debug</button>-->
+                <button type="button" onclick="debug()">debug</button>
 
             </div>
 

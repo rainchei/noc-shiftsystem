@@ -22,7 +22,7 @@ $(document).ready(function() {
                     if (shiftHasFilteredOut(e))
                         return null;
                     else
-                        return e;
+                        return enableWorkerShifts(e);
                 });
                 return events;
             },
@@ -41,9 +41,9 @@ $(document).ready(function() {
 
         // send an event of "delete" to database
         eventClick: function(event_click, element) {
-            if (event_click.editable == true) {
+            if (event_click.editable != true) {
                 alertify.showWarning(
-                    "This shift is not editable.<br>" +
+                    "You cannot edit this shift.<br>" +
                     "Perhaps to check the worker again?"
                 );
             }

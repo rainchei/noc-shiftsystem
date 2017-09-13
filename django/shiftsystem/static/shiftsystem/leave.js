@@ -168,11 +168,3 @@ function submitLeave() {
         });
     }
 }
-
-
-// Lets go debugging!
-function debug() {
-
-    console.log('[DEBUG]');
-    // test script goes ...
-}

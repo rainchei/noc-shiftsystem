@@ -242,6 +242,16 @@ function reFetchEventsFromDB() {
 }
 
 
+// Check current worker and enable his/her shifts on current calendar.
+function enableWorkerShifts(e) {
+    var employ_id = document.getElementById('worker').value.split('-')[1];
+    if (e.id.slice(0,7) == employ_id) {
+        e.editable = true;
+    }
+    return e
+}
+
+
 // Alertify function
 // defines warning model using dialog factory
 if (!alertify.showWarning) {
@@ -266,4 +276,13 @@ if (!alertify.showFailure) {
             }
         };
     }, false, 'alert');
+}
+
+
+// Lets go debugging!
+function debug() {
+
+    console.log('[DEBUG]');
+    // test script goes ...
+    enableWorkerShifts();
 }
