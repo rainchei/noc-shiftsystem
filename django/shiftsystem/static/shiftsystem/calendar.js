@@ -38,7 +38,6 @@ $(document).ready(function() {
             element.attr('title', event.description);
         },
 
-
         // send an event of "delete" to database
         eventClick: function(event_click, element) {
             if (event_click.editable != true) {
@@ -111,6 +110,41 @@ $(document).ready(function() {
                 }
             }
         },
+
+        eventDrop: function(event, delta, revertFunc) {
+//            if (!confirm("Are you sure about this change?")) {
+//                revertFunc();
+//            }
+            dropped_date = new Date(Number(event.start));
+            alertify.confirm(
+                "You are about to...",
+                "Move <font style='color: " + event.color + "'>" + event.worker +
+                " </font> from <font style='color: red'>" + event.start['_i'].toDateString() + "</font> to " +
+                "<font style='color: red'>" + dropped_date.toDateString() + "</font>.",
+                function() {  // when 'ok' is clicked
+//                    // Saving newly added events into the database...
+//                    eventsDel.push(event);  // pushing the array if it belongs to the user
+//                    var json_string = JSON.stringify(eventsDel);
+//                    $.ajax({
+//                        type: "POST",
+//                        url: "secret/save/",
+//                        data: {item: json_string},
+//                        success: function(data) {
+//                            console.log('You have successfully executed...');
+//                            for (var i = 0; i < data.length; i++) {
+//                                console.log(data[i]);
+//                            }
+//                            reFetchEventsFromDB();
+//                        }
+//                    });
+                    alertify.success(event.start['_i'].toDateString() + ' moved to ' + dropped_date.toDateString())
+                },
+                function() {  // when 'cancel' is clicked
+                    revertFunc();
+                    alertify.error("Cancelled.")
+                }
+            );
+        }
     });
 
     // shift filter

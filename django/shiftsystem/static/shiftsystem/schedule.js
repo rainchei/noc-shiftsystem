@@ -245,7 +245,8 @@ function reFetchEventsFromDB() {
 // Check current worker and enable his/her shifts on current calendar.
 function enableWorkerShifts(e) {
     var employ_id = document.getElementById('worker').value.split('-')[1];
-    if (e.id.slice(0,7) == employ_id) {
+    var today = new Date();
+    if (e.id.slice(0,7) == employ_id && e.id.slice(7) >= today) {
         e.editable = true;
     }
     return e
@@ -284,5 +285,4 @@ function debug() {
 
     console.log('[DEBUG]');
     // test script goes ...
-    enableWorkerShifts();
 }
