@@ -282,6 +282,20 @@ if (!alertify.showFailure) {
 }
 
 
+function exportCSV() {
+    // Get input values from input#startExp, input#endExp in "index.html".
+    var startExp = new Date(document.getElementById("startExp").value);
+    var endExp = new Date(document.getElementById("endExp").value);
+    endExp.setDate(endExp.getDate() + 1);  // increment one day to end date, so as to include the last date.
+
+    var exportType = document.getElementById("exportType").value;
+    var loc = 'export/?start=' + startExp.toISOString().slice(0,10).replace(/-/g,"/") +
+                '&end=' + endExp.toISOString().slice(0,10).replace(/-/g,"/") + '&export=' + exportType;
+//    console.log(loc);
+    window.location = loc;
+}
+
+
 // Lets go debugging!
 function debug() {
 

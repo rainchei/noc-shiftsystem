@@ -1,9 +1,10 @@
 from django.views.generic import ListView
-from django.http import JsonResponse, Http404
+from django.http import JsonResponse, Http404, HttpResponse
 from django.utils import timezone
 from datetime import datetime, timedelta
 from django.contrib.auth.mixins import LoginRequiredMixin
 import json
+import csv
 
 from .models import Schedule, Worker
 
@@ -39,13 +40,6 @@ def schedules(request):
 
     for shift in shifts:  # it executes its database query the first time you iterate over it.
 
-        # shift_type = ""  # default empty string
-        # if shift.shift_type == "NT":
-        #     shift_type = "Night"
-        # elif shift.shift_type == "DY":
-        #     shift_type = "Day"
-        # elif shift.shift_type == "SG":
-        #     shift_type = "Swing"
         shift_type_choices = (
             ('NT', 'Night'),
             ('DY', 'Day'),
@@ -235,3 +229,39 @@ class HomeView(ListView):
     """
     model = Schedule
     template_name = 'shiftsystem/home.html'
+
+
+def export_csv(request):
+    """
+    Export a csv file and ask browser to download it.
+    """
+    export = request.GET.get('export')  # get the export type from request
+    start, end = request.GET.get('start'), request.GET.get('end')  # request returns string only
+    sy, sm, sd = int(start.split('/')[0]), int(start.split('/')[1]), int(start.split('/')[2])  # turn into int
+    ey, em, ed = int(end.split('/')[0]), int(end.split('/')[1]), int(end.split('/')[2])
+    s_time = timezone.make_aware(datetime(sy, sm, sd))  # make aware to avoid naive runtime warning of queryset.
+    e_time = timezone.make_aware(datetime(ey, em, ed))
+    shifts = Schedule.objects.filter(start_date__gte=s_time).filter(start_date__lt=e_time).select_related('worker')
+
+    # Create the HttpResponse object with the appropriate CSV header.
+    response = HttpResponse(content_type='text/csv')
+    writer = csv.writer(response)
+
+    if export == 'Bimonthly':
+        response['Content-Disposition'] = 'attachment; filename="bimonthly_rearrange.csv"'
+        writer.writerow(['PERNR', 'BEGDA', 'ENDDA', 'SCHKZ', 'ZTERF'])
+        writer.writerow(['Employ_ID', 'Start Date', 'End Date', 'Shift', 'Punch In'])
+        for shift in shifts:
+            writer.writerow([
+                shift.worker.employ_id,
+                start.replace("/", ""),
+                end.replace("/", ""),
+                shift.shift_type,
+                9])
+
+    elif export == 'Day-to-day':
+        response['Content-Disposition'] = 'attachment; filename="day_to_day_exchange.csv"'
+        # writer.writerow(['First row', 'Foo', 'Bar', 'Baz'])
+        # writer.writerow(['Second row', 'A', 'B', 'C', '"test"', "Here's a quote"])
+
+    return response

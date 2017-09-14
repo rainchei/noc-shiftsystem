@@ -42,8 +42,6 @@
                         <li><a href="{% url 'shiftsystem:home' %}">Home</a></li>
                         <!--link calendar-->
                         <li><a href="{% url 'shiftsystem:index' %}">Calendar</a></li>
-                        <!--link leave-->
-                        <!--<li><a href="{ url 'shiftsystem:leave' }">Leave</a></li>-->
                         <!--link admin-->
                         {% if user.is_admin %}
                             <li><a href="/admin/">Admin</a></li>
