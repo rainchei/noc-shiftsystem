@@ -291,7 +291,7 @@ def export_csv(request):
         writer.writerow([
             'PERNR', 'BEGDA', 'ENDDA', 'SCHKZ', 'ZTERF'])
         writer.writerow([
-            'Employ_ID', 'Start Date (yyyymmdd)', 'End Date (yyyymmdd)', 'Shift Code', 'Punch In (1:yes/ 9:no)'])
+            'Employ ID', 'Start Date (yyyymmdd)', 'End Date (yyyymmdd)', 'Code', 'Punch In (1:yes/ 9:no)'])
 
         result = []
         for e_id in workers_id_list:
@@ -309,7 +309,6 @@ def export_csv(request):
                 'employ_id': e_id,
                 'day of week': list(s),
                 'type': e_type})
-
         # print(result)
 
         shift_codes = (
@@ -337,7 +336,19 @@ def export_csv(request):
 
     elif export == 'Day-to-day':
         response['Content-Disposition'] = 'attachment; filename="day_to_day_swap.csv"'
-        # writer.writerow(['First row', 'Foo', 'Bar', 'Baz'])
-        # writer.writerow(['Second row', 'A', 'B', 'C', '"test"', "Here's a quote"])
+        writer.writerow([
+            'Employ ID', 'Swap Class', 'Swap Date (yyyymmdd)', 'Code After Swap'])
+
+        result = []
+        for e_id in workers_id_list:
+            e_swaps = Swap.objects.filter(worker=e_id).filter(
+                from_date__gte=s_time).filter(to_date__lt=e_time).select_related('worker')
+            for e_swap in e_swaps:
+                result.append((e_id, '02: Self-Swap', e_swap.to_date.date().isoformat().replace("-", ""), ''))
+                result.append((e_id, '03: Leave', e_swap.from_date.date().isoformat().replace("-", ""), 'OFF'))
+        # print(result)
+
+        for r in result:
+            writer.writerow(r)
 
     return response
