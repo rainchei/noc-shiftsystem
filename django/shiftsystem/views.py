@@ -96,6 +96,8 @@ def schedules(request):
         if swap:
             from_date = swap[0].from_date + timedelta(hours=8)  # Increase 8 hours to match +08:00.
             event['description'] += "\nMoved from: {0}".format(from_date.date())
+            event['swap_from'] = swap[0].from_date + timedelta(hours=8)
+            event['swap_to'] = swap[0].to_date + timedelta(hours=8)
         data.append(event)
     return JsonResponse(data, safe=False)
 
@@ -116,6 +118,7 @@ def save_change(request):
         leave_success = 0  # count the success leave
         cancel_success = 0  # count the success cancel
         swap_success = 0  # count the success swap
+        delete_swap_success = 0  # count the success swap cancel
 
         for x in range(0, len(result)):
             # worker is the foreign key of model Schedule
@@ -196,7 +199,7 @@ def save_change(request):
                 leave_success += 1
 
             elif action == "cancel":
-                # remove the instance of the worker's leave set
+                # remove the fields of leave events from the worker's schedule set
                 shifts = worker.schedule_set.filter(start_date__gte=s_date+timedelta(hours=-8))\
                     .filter(start_date__lt=e_date+timedelta(hours=-8))
                 for shift in shifts:
@@ -214,8 +217,18 @@ def save_change(request):
                 )
                 swap_success += 1
 
+            elif action == "delete_swap":
+                # remove the instance of the worker's swap set
+                worker.swap_set.get(
+                    from_date=s_date,
+                    to_date=e_date,
+                ).delete()
+                delete_swap_success += 1
+
         # sending back the response of success or error on shifts saving
-        total_success = add_success + delete_success + leave_success + cancel_success + swap_success
+        total_success = \
+            add_success + delete_success + leave_success + cancel_success + swap_success + delete_swap_success
+
         data = []
 
         if total_success == 0:

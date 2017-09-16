@@ -175,6 +175,13 @@ function normalizeEvent(e) {
         'id': e.id,
     };
 
+    if (e.swap_from) {
+        e_from = new Date(e.swap_from).getTime() - 28800000;  // 8 hours = 28800 seconds
+        e_to = new Date(e.swap_to).getTime() - 28800000;  // 8 hours = 28800 seconds
+        event.swap_from = e_from;
+        event.swap_to = e_to;
+    }
+
     return event;
 }
 
