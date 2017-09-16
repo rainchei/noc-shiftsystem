@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import (
     BaseUserManager, AbstractBaseUser
 )
+from datetime import timedelta
 
 
 class WorkerManager(BaseUserManager):
@@ -176,6 +177,28 @@ class Schedule(models.Model):
     class Meta:
         # Workers can only schedule one shift in a day.
         unique_together = ('worker', 'start_date')
+
+
+class Swap(models.Model):
+    worker = models.ForeignKey(
+        Worker,
+        on_delete=models.CASCADE,
+        max_length=10,
+    )
+    from_date = models.DateTimeField('Swap from')
+    to_date = models.DateTimeField('Swap to')
+
+    # class Meta:
+    #     unique_together = (('worker', 'from_date'), ('worker', 'to_date'))
+
+    def __str__(self):
+        worker = self.worker
+        from_date = self.from_date + timedelta(hours=8)  # Increase 8 hours to match +08:00.
+        to_date = self.to_date + timedelta(hours=8)  # Increase 8 hours to match +08:00.
+        return "{worker}: from {from_date} to {to_date}".format(
+            worker=worker,
+            from_date=from_date.date(),
+            to_date=to_date.date())
 
 
 class ActionRecords(models.Model):

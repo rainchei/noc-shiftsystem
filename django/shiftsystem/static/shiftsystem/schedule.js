@@ -297,6 +297,14 @@ function exportCSV() {
 }
 
 
+// check if day-to-day is checked when moving shifts
+function swapCheck() {
+    var swap = document.getElementById("swap").checked;
+    console.log(swap);
+    return swap
+}
+
+
 // Lets go debugging!
 function debug() {
 

@@ -122,7 +122,8 @@ $(document).ready(function() {
                     "You are about to...",
                     "Move <font style='color: " + event_moved.color + "'>" + event_moved.worker +
                     " </font> from <font style='color: red'>" + from_date.toDateString() + "</font> to " +
-                    "<font style='color: red'>" + to_date_s.toDateString() + "</font>.",
+                    "<font style='color: red'>" + to_date_s.toDateString() + "</font>.<br>" +
+                    "<div class='checkbox'><label for='swap'><input type='checkbox' id='swap'><strong> Swap</strong></label></div>",
                     function() {  // when 'ok' is clicked
                         var from_event = normalizeEvent(event_moved);
                         from_event.action = "delete";
@@ -156,9 +157,19 @@ $(document).ready(function() {
                             );
                         } else {
                             var eventsDrop = [];  // an array for storing shifts to be deleted(from) and to be added(to).
-                            // ask the database to add the shift...
+                            // ask the database to delete/add the from_event/to_event...
                             eventsDrop.push(from_event, to_event);
+                            // if swap is checked, ask the database to add the swap event
+                            if (swapCheck()) {
+                                var swap_event = normalizeEvent(event_moved);
+                                swap_event.action = "swap";
+                                swap_event.start = from_event.start;  // from_date
+                                swap_event.end = to_event.start;  // to_date
+
+                                eventsDrop.push(swap_event);
+                            }
                             console.log(eventsDrop);
+
                             var json_string = JSON.stringify(eventsDrop);
                             $.ajax({
                                 type: "POST",

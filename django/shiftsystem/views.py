@@ -7,7 +7,7 @@ import calendar
 import json
 import csv
 
-from .models import Schedule, Worker
+from .models import Schedule, Worker, Swap
 
 
 class IndexView(LoginRequiredMixin, ListView):
@@ -88,8 +88,14 @@ def schedules(request):
             'id': "{0}{1}".format(shift.worker.employ_id, start_milli),  # id: employ_id + start
             'title': shift.title,
         }
-        if shift.title:  # if event has title, meaning it has leave hours.
+        # if event has title, meaning it has leave hours.
+        if shift.title:
             event['textColor'] = 'black'
+        # swap check
+        swap = Swap.objects.filter(to_date=shift.start_date)
+        if swap:
+            from_date = swap[0].from_date + timedelta(hours=8)  # Increase 8 hours to match +08:00.
+            event['description'] += "\nMoved from: {0}".format(from_date.date())
         data.append(event)
     return JsonResponse(data, safe=False)
 
@@ -109,6 +115,7 @@ def save_change(request):
         delete_success = 0  # count the success delete
         leave_success = 0  # count the success leave
         cancel_success = 0  # count the success cancel
+        swap_success = 0  # count the success swap
 
         for x in range(0, len(result)):
             # worker is the foreign key of model Schedule
@@ -199,8 +206,16 @@ def save_change(request):
                     shift.save()
                 cancel_success += 1
 
+            elif action == "swap":
+                # create new instances of the worker's swap set
+                worker.swap_set.create(
+                    from_date=s_date,
+                    to_date=e_date,
+                )
+                swap_success += 1
+
         # sending back the response of success or error on shifts saving
-        total_success = add_success + delete_success + leave_success + cancel_success
+        total_success = add_success + delete_success + leave_success + cancel_success + swap_success
         data = []
 
         if total_success == 0:
@@ -308,7 +323,7 @@ def export_csv(request):
                 9])
 
     elif export == 'Day-to-day':
-        response['Content-Disposition'] = 'attachment; filename="day_to_day_exchange.csv"'
+        response['Content-Disposition'] = 'attachment; filename="day_to_day_swap.csv"'
         # writer.writerow(['First row', 'Foo', 'Bar', 'Baz'])
         # writer.writerow(['Second row', 'A', 'B', 'C', '"test"', "Here's a quote"])
 
