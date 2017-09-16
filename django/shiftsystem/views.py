@@ -3,6 +3,7 @@ from django.http import JsonResponse, Http404, HttpResponse
 from django.utils import timezone
 from datetime import datetime, timedelta
 from django.contrib.auth.mixins import LoginRequiredMixin
+import calendar
 import json
 import csv
 
@@ -235,28 +236,75 @@ def export_csv(request):
     """
     Export a csv file and ask browser to download it.
     """
-    export = request.GET.get('export')  # get the export type from request
+    # get the export type from request.
+    export = request.GET.get('export')
+    # get the checked workers on shift filter from request, then get the checked workers employ id from db.
+    workers = request.GET.get('workers')
+    workers_list = workers.split(',')
+    workers_id_list = []
+    workers_all = Worker.objects.all()
+    for w in workers_all:
+        if w.username in workers_list:
+            workers_id_list.append(w.employ_id)
+    # get the query start/end date from request.
     start, end = request.GET.get('start'), request.GET.get('end')  # request returns string only
     sy, sm, sd = int(start.split('/')[0]), int(start.split('/')[1]), int(start.split('/')[2])  # turn into int
     ey, em, ed = int(end.split('/')[0]), int(end.split('/')[1]), int(end.split('/')[2])
     s_time = timezone.make_aware(datetime(sy, sm, sd))  # make aware to avoid naive runtime warning of queryset.
     e_time = timezone.make_aware(datetime(ey, em, ed))
-    shifts = Schedule.objects.filter(start_date__gte=s_time).filter(start_date__lt=e_time).select_related('worker')
 
     # Create the HttpResponse object with the appropriate CSV header.
     response = HttpResponse(content_type='text/csv')
     writer = csv.writer(response)
 
+    # two types of exported csv files, bimonthly and day-to-day
     if export == 'Bimonthly':
         response['Content-Disposition'] = 'attachment; filename="bimonthly_rearrange.csv"'
-        writer.writerow(['PERNR', 'BEGDA', 'ENDDA', 'SCHKZ', 'ZTERF'])
-        writer.writerow(['Employ_ID', 'Start Date', 'End Date', 'Shift', 'Punch In'])
-        for shift in shifts:
+        writer.writerow([
+            'PERNR', 'BEGDA', 'ENDDA', 'SCHKZ', 'ZTERF'])
+        writer.writerow([
+            'Employ_ID', 'Start Date (yyyymmdd)', 'End Date (yyyymmdd)', 'Shift Code', 'Punch In (1:yes/ 9:no)'])
+
+        result = []
+        for e_id in workers_id_list:
+            e_shifts = Schedule.objects.filter(worker=e_id).filter(
+                start_date__gte=s_time).filter(start_date__lt=e_time).select_related('worker')
+            s = set()  # use set to get unique value of day of week
+            e_type = ""
+            first = True
+            for e_shift in e_shifts:
+                s.add(calendar.day_name[(e_shift.start_date + timedelta(hours=8)).weekday()])  # day of week
+                if first:
+                    e_type = e_shift.shift_type
+                    first = False
+            result.append({
+                'employ_id': e_id,
+                'day of week': list(s),
+                'type': e_type})
+
+        # print(result)
+
+        shift_codes = (
+            [("Sunday", "Monday", "Tuesday", "Wednesday"), "DY", 'CF04'],
+            [("Sunday", "Monday", "Tuesday", "Wednesday"), "SG", 'CF05'],
+            [("Sunday", "Monday", "Tuesday", "Wednesday"), "NT", 'CF06'],
+            [("Wednesday", "Thursday", "Friday", "Saturday"), "DY", 'CF07'],
+            [("Wednesday", "Thursday", "Friday", "Saturday"), "SG", 'CF08'],
+            [("Wednesday", "Thursday", "Friday", "Saturday"), "NT", 'CF09'],
+        )
+
+        final = []
+        for r in result:
+            for d, t, c in shift_codes:
+                if set(d).intersection(r['day of week']) == set(d) and t == r['type']:
+                    final.append((r['employ_id'], c))
+
+        for f in final:
             writer.writerow([
-                shift.worker.employ_id,
+                f[0],  # employ id
                 start.replace("/", ""),
                 end.replace("/", ""),
-                shift.shift_type,
+                f[1],  # shift code
                 9])
 
     elif export == 'Day-to-day':
