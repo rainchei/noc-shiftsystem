@@ -175,6 +175,13 @@ function normalizeEvent(e) {
         'id': e.id,
     };
 
+    if (e.swap_from) {
+        e_from = new Date(e.swap_from).getTime() - 28800000;  // 8 hours = 28800 seconds
+        e_to = new Date(e.swap_to).getTime() - 28800000;  // 8 hours = 28800 seconds
+        event.swap_from = e_from;
+        event.swap_to = e_to;
+    }
+
     return event;
 }
 
@@ -242,6 +249,19 @@ function reFetchEventsFromDB() {
 }
 
 
+// Check current worker and enable his/her shifts on current calendar.
+function enableWorkerShifts(e) {
+    var employ_id = document.getElementById('worker').value.split('-')[1];
+    var today = new Date();
+    // editable if the shift...
+    // belongs to the current worker; later than today
+    if (e.id.slice(0,7) == employ_id && e.id.slice(7) >= today) {
+        e.editable = true;
+    }
+    return e
+}
+
+
 // Alertify function
 // defines warning model using dialog factory
 if (!alertify.showWarning) {
@@ -266,4 +286,35 @@ if (!alertify.showFailure) {
             }
         };
     }, false, 'alert');
+}
+
+
+function exportCSV() {
+    // Get input values from input#startExp, input#endExp in "index.html".
+    var startExp = new Date(document.getElementById("startExp").value);
+    var endExp = new Date(document.getElementById("endExp").value);
+//    endExp.setDate(endExp.getDate() + 1);  // increment one day to end date, so as to include the last date.
+
+    var exportType = document.getElementById("exportType").value;
+    var loc = 'export/?start=' + startExp.toISOString().slice(0,10).replace(/-/g,"/") +
+                '&end=' + endExp.toISOString().slice(0,10).replace(/-/g,"/") + '&export=' +
+                exportType + '&workers=' + MODULE.checkedMembers.toString();
+//    console.log(loc);
+    window.location = loc;
+}
+
+
+// check if day-to-day is checked when moving shifts
+function swapCheck() {
+    var swap = document.getElementById("swap").checked;
+    console.log(swap);
+    return swap
+}
+
+
+// Lets go debugging!
+function debug() {
+
+    console.log('[DEBUG]');
+    // test script goes ...
 }
