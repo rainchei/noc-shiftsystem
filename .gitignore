@@ -1,4 +1,3 @@
 # exclude database
 django/db.sqlite3
-django/shiftsystem/__pycache__/
 django/shiftsystem/migrations/

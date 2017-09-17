@@ -344,11 +344,36 @@ def export_csv(request):
             e_swaps = Swap.objects.filter(worker=e_id).filter(
                 from_date__gte=s_time).filter(to_date__lt=e_time).select_related('worker')
             for e_swap in e_swaps:
-                result.append((e_id, '02: Self-Swap', e_swap.to_date.date().isoformat().replace("-", ""), ''))
-                result.append((e_id, '03: Leave', e_swap.from_date.date().isoformat().replace("-", ""), 'OFF'))
+                to_date = e_swap.to_date
+                from_date = e_swap.from_date
+                e_shift = Schedule.objects.filter(worker=e_id).get(start_date=to_date)
+                s_code = get_shift_code(e_shift)
+                result.append((e_id, '02: Self-Swap', to_date.date().isoformat().replace("-", ""), s_code))
+                result.append((e_id, '03: Leave', from_date.date().isoformat().replace("-", ""), 'OFF'))
         # print(result)
 
         for r in result:
             writer.writerow(r)
 
     return response
+
+
+def get_shift_code(e_shift):
+    e_start = e_shift.start_date + timedelta(hours=8)
+    e_type = e_shift.shift_type
+
+    # 0: Monday, 1: Tuesday, 2: Wednesday, 3: Thursday, 4: Friday, 5: Saturday, 6: Sunday
+    # one is very unlikely to move a shift from one day to wednesday, in contrast, one is more likely to
+    # move a shift from wednesday. Therefore, no need to consider the shift code on wednesday.
+    shift_codes = (
+        [(6, 0, 1), "DY", 'CF04'],
+        [(6, 0, 1), "SG", 'CF05'],
+        [(6, 0, 1), "NT", 'CF06'],
+        [(3, 4, 5), "DY", 'CF07'],
+        [(3, 4, 5), "SG", 'CF08'],
+        [(3, 4, 5), "NT", 'CF09'],
+    )
+
+    for d, t, c in shift_codes:
+        if e_start.weekday() in d and e_type == t:
+            return c
