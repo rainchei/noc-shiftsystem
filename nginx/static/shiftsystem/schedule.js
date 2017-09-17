@@ -295,12 +295,20 @@ function exportCSV() {
     var endExp = new Date(document.getElementById("endExp").value);
 //    endExp.setDate(endExp.getDate() + 1);  // increment one day to end date, so as to include the last date.
 
-    var exportType = document.getElementById("exportType").value;
-    var loc = 'export/?start=' + startExp.toISOString().slice(0,10).replace(/-/g,"/") +
-                '&end=' + endExp.toISOString().slice(0,10).replace(/-/g,"/") + '&export=' +
-                exportType + '&workers=' + MODULE.checkedMembers.toString();
-//    console.log(loc);
-    window.location = loc;
+    if (isNaN(startExp.getTime()) || isNaN(endExp.getTime())) {
+        alertify.showFailure(
+            "Oops! Something went wrong...<br>" +
+            "Did you forget to input the start/end date?"
+        );
+    } else {
+        var exportType = document.getElementById("exportType").value;
+        var loc = 'export/?start=' + startExp.toISOString().slice(0,10).replace(/-/g,"/") +
+                    '&end=' + endExp.toISOString().slice(0,10).replace(/-/g,"/") + '&export=' +
+                    exportType + '&workers=' + MODULE.checkedMembers.toString();
+    //    console.log(loc);
+        window.location = loc;
+    }
+
 }
 
 
