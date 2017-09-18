@@ -172,7 +172,10 @@ class Schedule(models.Model):
 
     def __str__(self):
         # Overrides method in Model.
-        return "{date}-{type}".format(date=self.start_date, type=self.shift_type)
+        for c, s in self.SHIFT_TYPE_CHOICES:
+            if self.shift_type == c:
+                s_type = s
+        return "{worker} {date} {type}".format(worker=self.worker, date=self.start_date.date(), type=s_type)
 
     class Meta:
         # Workers can only schedule one shift in a day.
