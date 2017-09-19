@@ -129,6 +129,7 @@ class Schedule(models.Model):
 
     # Leave start/end time
     title = models.CharField(
+        'Leave start/end time',
         default="",
         max_length=12,
     )
