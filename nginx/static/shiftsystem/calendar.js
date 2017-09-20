@@ -86,11 +86,13 @@ $(document).ready(function() {
                                 swap_event.action = "delete_swap";
                                 swap_event.start = swap_event.swap_from;
                                 swap_event.end = swap_event.swap_to;
+
+                                eventsDel.push(swap_event);
                             }
                             event.action = "delete";
                             var eventsDel = [];  // an array for storing events to be deleted.
                             // ask the database to delete the shift, and the swap...
-                            eventsDel.push(event, swap_event);
+                            eventsDel.push(event);
                             var json_string = JSON.stringify(eventsDel);
                             $.ajax({
                                 type: "POST",
