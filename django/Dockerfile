@@ -24,7 +24,5 @@ RUN npm install -g bower
 # Download bower_components including fullcalendar, jquery, bootstrap
 RUN python manage.py bower_install --allow-root
 
-# Create database tables according to the django models
-RUN python manage.py makemigrations && python manage.py migrate
-
-# Remember to collect data into nginx
+# Create database tables according to the django models ... (do not run this unless your db is ready)
+#RUN python manage.py makemigrations && python manage.py migrate

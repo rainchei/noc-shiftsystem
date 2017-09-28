@@ -1,39 +1,36 @@
-django:
-  build: ./django/
-  container_name: django
-  expose:
-    - 8001
-  volumes_from:
-    - django_data
-  command: uwsgi --socket :8001 --module noc.wsgi
+version: "2"
+services:
+  db:
+    image: mariadb:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_DATABASE: noc-shiftsystem
+      MYSQL_USER: backend
+      MYSQL_PASSWORD: noc
+    expose:
+      - 3306
 
-django_data:
-  image: python:latest
-  volumes:
-    - ./django:/django
-  command: "true"
+  django:
+    build: ./django/
+    container_name: django
+    depends_on:
+        - db
+    expose:
+      - 8001
+    volumes_from:
+      - django_data
+    command: uwsgi --socket :8001 --module noc.wsgi
 
-nginx:
-  build: ./nginx/
-  container_name: nginx
-  links:
-    - django:django
-  ports:
-    - "80:80"
+  django_data:
+    image: python:latest
+    volumes:
+      - ./django:/django
+    command: "true"
 
-#Use sqlite3 for development
-#db:
-#  image: mariadb:latest
-#  volumes_from:
-#    - db_data
-#  environment:
-#    MYSQL_ROOT_PASSWORD: secret
-#    MYSQL_DATABASE: djangodb
-#    MYSQL_USER: rainman
-#    MYSQL_PASSWORD: secret
-#
-#dbdata:
-#  image: mariadb:latest
-#  volumes:
-#    - /var/lib/mysql
-#  command: "true"
+  nginx:
+    build: ./nginx/
+    container_name: nginx
+    links:
+      - django:django
+    ports:
+      - "80:80"

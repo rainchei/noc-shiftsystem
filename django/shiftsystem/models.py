@@ -176,7 +176,10 @@ class Schedule(models.Model):
         for c, s in self.SHIFT_TYPE_CHOICES:
             if self.shift_type == c:
                 s_type = s
-        return "{worker} {date} {type}".format(worker=self.worker, date=self.start_date.date(), type=s_type)
+        return "{worker} {date} {type}".format(
+            worker=self.worker,
+            date=(self.start_date + timedelta(hours=8)).date(),
+            type=s_type)
 
     class Meta:
         # Workers can only schedule one shift in a day.

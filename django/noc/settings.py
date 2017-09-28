@@ -81,8 +81,16 @@ WSGI_APPLICATION = 'noc.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        # use sqlite3 for development
+        # 'ENGINE': 'django.db.backends.sqlite3',
+        # 'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        # use mariadb for production
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'noc-shiftsystem',
+        'USER': 'backend',
+        'PASSWORD': 'noc',
+        'HOST': 'db',
+        'PORT': '3306',
     }
 }
 
