@@ -81,6 +81,10 @@ $(document).ready(function() {
                         "Delete <font style='color: " + event_click.color + "'>" + event_click.worker +
                         " </font> on <font style='color: red'>" + event_click.start['_i'].toDateString() + "</font>.",
                         function() {  // when 'ok' is clicked
+                            var eventsDel = [];  // an array for storing events to be deleted.
+                            event.action = "delete";
+                            // ask the database to delete the shift, and the swap...
+                            eventsDel.push(event);
                             if (event_click.swap_from) {
                                 var swap_event = normalizeEvent(event_click);
                                 swap_event.action = "delete_swap";
@@ -89,10 +93,6 @@ $(document).ready(function() {
 
                                 eventsDel.push(swap_event);
                             }
-                            event.action = "delete";
-                            var eventsDel = [];  // an array for storing events to be deleted.
-                            // ask the database to delete the shift, and the swap...
-                            eventsDel.push(event);
                             var json_string = JSON.stringify(eventsDel);
                             $.ajax({
                                 type: "POST",
