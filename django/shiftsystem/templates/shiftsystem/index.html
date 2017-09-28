@@ -177,22 +177,35 @@
                             <div class="panel-body text-left">
                                 <!--shift filter-->
                                 <div class="form-group">
-                                    <div class="checkbox">
-                                        <label>
-                                            <input type="checkbox" id="nocs" value="all">
-                                            <strong>Employee</strong>
-                                        </label>
-                                    </div>
-                                    {% for worker in object_list %}
-                                        {% if worker.username != "noc_manager" %}
-                                            <div class="checkbox">
-                                                <label>
-                                                    <input type="checkbox" name="noc" value="{{ worker.username }}">
-                                                    {{ worker.username }}
-                                                </label>
-                                            </div>
-                                        {% endif %}
-                                    {% endfor %}
+                                    <table>
+                                        <tr>
+                                            <th>
+                                                <div class="checkbox">
+                                                    <label>
+                                                        <input type="checkbox" id="nocs" value="all">
+                                                        <strong>Employee</strong>
+                                                    </label>
+                                                </div>
+                                            </th>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                {% for worker in object_list %}
+                                                    {% if worker.username != "noc_manager" %}
+                                                        <div class="checkbox">
+                                                            <label>
+                                                                <input type="checkbox" name="noc" value="{{ worker.username }}">
+                                                                <label style="background-color: {{ worker.color }}"></label>
+                                                                {{ worker.username }}
+                                                            </label>
+                                                        </div>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </td>
+                                        </tr>
+                                    </table>
+
+
                                 </div>
                             </div>
                         </div>
