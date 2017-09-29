@@ -20,7 +20,7 @@
                     <label for="worker"><h4>Worker</h4></label>
                     <select class="form-control" id="worker" onchange="reFetchEventsFromDB()">
                     {% for worker in object_list %}
-                        {% if worker.username != "noc_manager" %}
+                        {% if worker.is_active %}
                             {% if worker == user %}
                                 <option value="{{ worker.username }}-{{ worker.employ_id }}" selected>{{ worker.username }}</option>
                             {% else %}
@@ -191,7 +191,7 @@
                                         <tr>
                                             <td>
                                                 {% for worker in object_list %}
-                                                    {% if worker.username != "noc_manager" %}
+                                                    {% if worker.is_active %}
                                                         <div class="checkbox">
                                                             <label>
                                                                 <input type="checkbox" name="noc" value="{{ worker.username }}">
