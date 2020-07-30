@@ -3,10 +3,10 @@ services:
   db:
     image: mariadb:latest
     environment:
-      MYSQL_ROOT_PASSWORD: secret
-      MYSQL_DATABASE: noc-shiftsystem
-      MYSQL_USER: backend
-      MYSQL_PASSWORD: noc
+      MYSQL_ROOT_PASSWORD: ''
+      MYSQL_DATABASE: ''
+      MYSQL_USER: ''
+      MYSQL_PASSWORD: ''
     expose:
       - 3306
 
